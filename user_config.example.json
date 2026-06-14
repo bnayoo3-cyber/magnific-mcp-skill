@@ -1,0 +1,11 @@
+{
+  "mcp_name": "magnific",
+  "alerts": {
+    "mode": "percentage",
+    "threshold": 75,
+    "monthly_budget": 35000
+  },
+  "tracking": "auto",
+  "cost_mode": "balanced",
+  "created": "2026-01-01"
+}
