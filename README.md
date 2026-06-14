@@ -22,10 +22,10 @@ Clone into your Claude skills directory:
 
 ```bash
 # macOS / Linux
-git clone https://github.com/<USER>/magnific-mcp-skill ~/.claude/skills/magnific-mcp
+git clone https://github.com/bnayoo3-cyber/magnific-mcp-skill ~/.claude/skills/magnific-mcp
 
 # Windows (PowerShell)
-git clone https://github.com/<USER>/magnific-mcp-skill $env:USERPROFILE\.claude\skills\magnific-mcp
+git clone https://github.com/bnayoo3-cyber/magnific-mcp-skill $env:USERPROFILE\.claude\skills\magnific-mcp
 ```
 
 Restart your Claude client. The skill becomes active automatically — Claude
