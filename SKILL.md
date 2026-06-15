@@ -186,12 +186,40 @@ the rough cost out loud before launching.
 
 ---
 
-## 6. Budget tracking helper
+## 6. Budget tracking + post-job reporting
+
+**Always report credit usage after every job that consumes credits.** This is
+non-negotiable regardless of `tracking` mode — the user wants to see what
+each operation cost. Tracking mode only controls whether you persist the log
+to disk.
+
+### After every generation / upscale / video / audio call:
+
+1. Call `account_balance` to get the current balance.
+2. Compute `cost = previous_balance - current_balance`. If no previous
+   balance is known (first call), report just the current balance.
+3. **Tell the user inline**, in one short line. Pattern:
+
+   > **"השתמשנו ב-X קרדיטים. נשארו Y."**
+   > *(English: "Used X credits. Y remaining.")*
+
+   If `tracking: auto` and `monthly_budget` is set, extend it:
+
+   > **"השתמשנו ב-X קרדיטים. נשארו Y. החודש: Z מתוך W."**
+
+4. If `tracking: auto` — persist to `budget.json`:
+   - Append `{ ts, tool, model, cost }` to `log`.
+   - Update `used_this_month += cost` and `last_known_balance = current`.
+5. If `used_this_month / monthly_budget >= alerts.threshold/100`, append a
+   warning to the same message: *"⚠️ עברת X% מהתקציב החודשי."*
+
+When the month rolls over, reset `used_this_month` to 0 and stamp the new
+`current_month`.
+
+### `budget.json` shape
 
 When `tracking: auto`, maintain a `budget.json` in the user's project root
 (or fall back to `~/.claude/skills/magnific-mcp/budget.json`).
-
-Minimal shape:
 
 ```json
 {
@@ -206,14 +234,12 @@ Minimal shape:
 }
 ```
 
-After every generation:
-1. Call `account_balance`.
-2. Diff against `last_known_balance` to derive `cost`.
-3. Append to `log` and update `used_this_month`.
-4. If `used_this_month / monthly_budget >= alerts.threshold/100`, warn the
-   user inline: *"You've used 76% of your monthly Magnific credits."*
+### When `tracking` is `manual` or `summary-only`
 
-When the month rolls over, reset `used_this_month` and stamp the new month.
+- `manual` — still call `account_balance` after each job to get the live
+  number to show the user; just don't write to `budget.json`.
+- `summary-only` — log to `budget.json` but skip the API call; estimate cost
+  from documented model pricing if known.
 
 ---
 
