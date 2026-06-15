@@ -105,7 +105,16 @@ more expensive.
 | Character / product consistency | `imagen-nano-banana-2-pro` (reference-guided) |
 | Photoreal output | `imagen-4-ultra` |
 | Highest fidelity, willing to pay | `flux-1.1-pro-ultra` |
+| **Text inside the image (Hebrew, Arabic, RTL, complex scripts)** | **`gpt-image-2` (best)** or `imagen-nano-banana-2-pro` |
 | SVG / vector | `images_generate_svg` |
+
+> **Why this matters**: most image models render non-Latin text as garbled
+> letterforms. Only **GPT Image 2** and **Nano Banana 2 Pro** render Hebrew
+> reliably right now. GPT Image 2 is the stronger of the two. If the user's
+> prompt contains Hebrew/Arabic/etc. text that needs to **appear in the
+> output image**, switch to one of these models even if cheaper options would
+> fit the task otherwise. Tell the user briefly when you swap: *"Switching
+> to GPT Image 2 because the prompt has Hebrew text."*
 
 ### Video
 
@@ -127,7 +136,49 @@ more expensive.
 
 ---
 
-## 3. The Library — reuse characters, styles, products
+## 3. Reference images — HARD rules
+
+These are **stop-and-think** rules. Wrong handling here wastes credits and
+breaks the user's intent.
+
+### Rule 3.1 — If the user provides a reference image, you MUST use it
+
+When the user shares an image (file path, URL, screenshot, inline upload,
+or a previously generated creation) and asks for a related generation,
+**that image must end up in `references[]` of the generation call** — either
+directly as a URL, by uploading it first via `creations_upload_image`, or
+by routing through a Library entry.
+
+Do not paraphrase the reference in words and hope for the best. Do not
+silently drop it because the model "should know" what the user wants. The
+reference is the user's specification.
+
+### Rule 3.2 — If you can't access the reference, STOP and ask for access
+
+If a reference is a local file you can't read, a private URL, or a creation
+under a different account/MCP, **do not start the work**. Ask the user for
+the file/URL/access first.
+
+Acceptable failure modes:
+
+- *"I can't read the file you mentioned at `<path>`. Can you upload it or
+  paste a public URL?"*
+- *"That creation belongs to a Magnific account I'm not connected to —
+  switch the MCP or share the asset URL."*
+
+**Never** proceed with a generation that ignores the reference. Wasting
+credits on a fallback is worse than waiting.
+
+### Rule 3.3 — Multiple references at once
+
+`images_generate.references[]` accepts several entries with different
+`type`s (`character`, `product`, `style`, `locations`, plus raw image URLs).
+Use them together when the user's intent spans more than one — e.g.
+character + branded product + location all in one call.
+
+---
+
+## 4. The Library — reuse characters, styles, products
 
 This is the highest-leverage feature of Magnific and the most underused.
 
@@ -145,7 +196,7 @@ convert it to a creation identifier — they're different.
 
 ---
 
-## 4. Standard generation flow
+## 5. Standard generation flow
 
 ```
 images_generate(model, prompt, references?)
@@ -167,7 +218,7 @@ For Spaces (`spaces_*`): the reference node uses numeric `id` as `modifierId`.
 
 ---
 
-## 5. Approval rules — when to ask before spending
+## 6. Approval rules — when to ask before spending
 
 Match these to the user's `cost_mode`:
 
@@ -186,7 +237,7 @@ the rough cost out loud before launching.
 
 ---
 
-## 6. Budget tracking + post-job reporting
+## 7. Budget tracking + post-job reporting
 
 **Always report credit usage after every job that consumes credits.** This is
 non-negotiable regardless of `tracking` mode — the user wants to see what
@@ -243,7 +294,7 @@ When `tracking: auto`, maintain a `budget.json` in the user's project root
 
 ---
 
-## 7. Identifier hygiene (per Magnific's own MCP instructions)
+## 8. Identifier hygiene (per Magnific's own MCP instructions)
 
 When writing back to the user:
 - **Use** names, titles, `webUrl`, and plain descriptions.
@@ -253,7 +304,7 @@ When writing back to the user:
 
 ---
 
-## 8. Common gotchas
+## 9. Common gotchas
 
 - **`creations_search` is data-only.** It returns results but no `webUrl`.
   If you want the user to see them, call `creations_show(identifiers)`.
@@ -269,7 +320,7 @@ When writing back to the user:
 
 ---
 
-## 9. Quick "give me good defaults" recipe
+## 10. Quick "give me good defaults" recipe
 
 If the user just says *"make me an image of X"* with no other hints:
 
@@ -285,7 +336,7 @@ first generated image as keyframe.
 
 ---
 
-## 10. Updating this skill
+## 11. Updating this skill
 
 This is a living guide. If a user shares a workflow they like, or you find a
 better default through trial, propose adding it to this file — but keep the
