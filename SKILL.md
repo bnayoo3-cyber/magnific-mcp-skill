@@ -94,45 +94,64 @@ on. Change anytime."*
 
 ## 2. Model selection cheat sheet
 
-Always prefer the smallest model that meets the task — bigger ≠ better, just
-more expensive.
+> **Live-truth principle**: this list is curated, but the authoritative
+> source is the MCP itself. Run `images_models_list({ onlyRecommended: true })`
+> or `video_models_list({ onlyRecommended: true })` to fetch the current
+> SOTA-ranked set before any non-trivial job — Magnific rotates models.
 
-### Images
+### Images (current SOTA, as of June 2026)
 
-| Need | Model |
-|------|-------|
-| Fast iteration / mood boards | `imagen-nano-banana-2` |
-| Character / product consistency | `imagen-nano-banana-2-pro` (reference-guided) |
-| Photoreal output | `imagen-4-ultra` |
-| Highest fidelity, willing to pay | `flux-1.1-pro-ultra` |
-| **Text inside the image (Hebrew, Arabic, RTL, complex scripts)** | **`gpt-image-2` (best)** or `imagen-nano-banana-2-pro` |
-| SVG / vector | `images_generate_svg` |
+| Slug | Best for | Generation | References supported |
+|------|---------|-----------|---------------------|
+| `recraft-v4-1` | **First drafts**, photoreal, illustration, typography, creative exploration — pure text→image with no refs | ~14 s | `style` only |
+| `gpt-2` | **Text, layout, infographics, UI mockups, diagrams, typography**, non-photoreal design. **Best Hebrew / Arabic / RTL / complex scripts.** | ~77 s | `style`, `character`, `product`, `image` |
+| `imagen-nano-banana-2` (Nano Banana **Pro**) | **Image editing, composition, character/product/brand consistency**, final assets | ~60 s | `style`, `character`, `product`, `image`, **`composition`** ← unique |
+| `imagen-nano-banana-2-flash` (Nano Banana **2**) | Faster cheaper edits when Pro fidelity isn't required | ~36 s | same as Pro |
 
-> **Why this matters**: most image models render non-Latin text as garbled
-> letterforms. Only **GPT Image 2** and **Nano Banana 2 Pro** render Hebrew
-> reliably right now. GPT Image 2 is the stronger of the two. If the user's
-> prompt contains Hebrew/Arabic/etc. text that needs to **appear in the
-> output image**, switch to one of these models even if cheaper options would
-> fit the task otherwise. Tell the user briefly when you swap: *"Switching
-> to GPT Image 2 because the prompt has Hebrew text."*
+**Decision tree (in this order):**
+1. **Output must contain rendered text** (any language, but especially
+   Hebrew/Arabic/RTL/Asian scripts) → `gpt-2`.
+2. **Editing an existing image, matching a character, product, brand, or
+   composition** → `imagen-nano-banana-2` (Pro). Use `-flash` for cheaper drafts.
+3. **First-shot creation, no references** → `recraft-v4-1` (fastest + cleanest).
+4. When you switch model for a specific reason, say it briefly:
+   *"Using GPT 2 because the prompt has Hebrew text."*
 
-### Video
+### Video (current SOTA)
 
-| Need | Model | Cost class |
-|------|-------|------------|
-| Default text→video, image→video | `kling-2-5` | low/medium |
-| Talking head from photo+script | `omni-3` (via `video_speak`) | medium |
-| Top-tier motion realism | `seedance` | **HIGH — ~10× kling** |
+| Slug | Best for | Durations | Resolutions | Special |
+|------|---------|-----------|-------------|---------|
+| `bytedance-seedance-pro-2.0` (**Seedance 2.0**) | **Best overall.** Realistic motion, complex action, **native audio + lipsync**, directed camera, multishot up to 6 shots, 52 camera motions | 4–15 s | 480p / 720p / 1080p | Audio refs, multishot, scene direction |
+| `kling-25` (**Kling 2.5**) | **Best value/price.** Fast iteration on silent clips, start/end-frame control | 5 / 10 s | 720p / 1080p | Keyframes |
+| `bytedance-seedance-fast-2.0` (Seedance Fast) | Fast Seedance drafts when max quality isn't needed | 4–15 s | 480p / 720p | Audio, multishot |
+
+**Default**: `kling-25` for silent value clips, `bytedance-seedance-pro-2.0`
+when audio/lipsync/cinematic control matters. Always run `video_plan` first
+to validate the slug + cost before `video_generate`.
+
+### Reference types — what each ref slot does
+
+| Type | Effect | Models that accept it |
+|------|--------|----------------------|
+| `style` | Visual style transfer (palette, texture, vibe) | All |
+| `character` | Same person/figure across generations | GPT 2, Nano Banana Pro/2 |
+| `product` | Same branded object across generations | GPT 2, Nano Banana Pro/2 |
+| `composition` | Match framing/layout/pose | **Only Nano Banana Pro/2** |
+| `image` | Generic visual reference | GPT 2, Nano Banana Pro/2 |
+
+**Pro tip**: when the user says *"keep the same layout but change X"*, that's
+a `composition` reference and you need Nano Banana Pro. Other models can't
+respect composition.
 
 ### Audio
 
-- TTS — `audio_tts` (pick voice via `audio_voices_list` first)
+- TTS — `audio_tts` (preview voices via `audio_voices_list` first)
 - Music generation — `audio_music_generate`
 
 ### Upscale
 
 - Images — `images_upscale`
-- Video — `video_upscale`
+- Video — `video_upscale` (run `video_upscale_models_list` to see options)
 
 ---
 
@@ -178,7 +197,50 @@ character + branded product + location all in one call.
 
 ---
 
-## 4. The Library — reuse characters, styles, products
+## 4. Flows — check before building from scratch
+
+**Magnific ships a catalog of pre-built workflows ("Flows") that chain
+multiple steps into one call.** Many common requests have a Flow that's
+cheaper, faster, and more reliable than rolling your own chain.
+
+**Always run `flows_list({ ownership: "public" })` early in a task** and
+check for a match before designing a custom multi-step generation.
+
+### Examples from the public catalog
+
+| Task | Flow | Approx. cost |
+|------|------|--------------|
+| Branded merch lineup from a logo | `Brand merch shots` | ~75 credits |
+| Recolor a product | `Product color variants` | ~75 |
+| Generate a clean icon in a chosen style | `Icon generator` | ~150 |
+| Decorate an empty room photo | `Room decorator` | ~150 |
+| Convert a 3D render to photorealistic | `Render to photoreal` | ~75 |
+| Dress a model in a given outfit | `Dress a model in any outfit` | ~75 |
+| Audience-segmented ad variants | `Audience-driven ads` | ~200 |
+| Cinematic storyboard from a synopsis | `Detailed storyboard` | ~200 |
+| Product mockup in a scene | `Mockup realizer` | ~200 |
+| UGC scripted talking-head video | `UGC scripted video` | ~932 |
+| Loop a still image into endless motion | `Looped motion` | ~1,000 |
+| Smooth transition between two frames | `Frame to frame` | ~1,200 |
+| Photo → motion with camera direction | `Photo to motion` | ~5,700 |
+| Live-stream commerce demo with UI overlay | `UGC livestream demo` | ~7,100 |
+| Camera path on a still image (text-defined) | `Create your camera path` | ~8,500 |
+
+(Costs vary. Always trust `flows_get` for the current input/output spec and
+the live `totalCost` before invoking `flows_run`.)
+
+### Workflow
+
+1. `flows_list({ ownership: "public", query: "<keyword>" })` — narrow by topic.
+2. `flows_get({ identifier })` on a candidate — read inputs, outputs, cost.
+3. Confirm with the user: *"There's a Flow for this — `X` (~Y credits).
+   Use it or build custom?"*
+4. `flows_run` with the inputs. Use `flows_wait` if you need the final URL
+   for a downstream chained call.
+
+---
+
+## 5. The Library — reuse characters, styles, products
 
 This is the highest-leverage feature of Magnific and the most underused.
 
@@ -196,7 +258,7 @@ convert it to a creation identifier — they're different.
 
 ---
 
-## 5. Standard generation flow
+## 6. Standard generation flow
 
 ```
 images_generate(model, prompt, references?)
@@ -218,17 +280,19 @@ For Spaces (`spaces_*`): the reference node uses numeric `id` as `modifierId`.
 
 ---
 
-## 6. Approval rules — when to ask before spending
+## 7. Approval rules — when to ask before spending
 
 Match these to the user's `cost_mode`:
 
 | Operation | quality-first | balanced | careful |
 |-----------|---------------|----------|---------|
-| Single image, base model | ✅ go | ✅ go | ✅ go |
-| Single image, top model (`flux-pro-ultra`, `imagen-4-ultra`) | ✅ go | ✅ go | ⚠️ confirm |
+| Single image (`recraft-v4-1`, `imagen-nano-banana-2-flash`, `gpt-2`) | ✅ go | ✅ go | ✅ go |
+| Single image, top model (`imagen-nano-banana-2`) | ✅ go | ✅ go | ⚠️ confirm |
 | Batch ≥ 8 images | ✅ go | ⚠️ confirm | ⚠️ confirm |
-| Video (`kling-2-5`, `omni-3`) | ✅ go | ⚠️ confirm | ⚠️ confirm |
-| Video (`seedance`) | ⚠️ confirm | ❌ confirm with cost estimate | ❌ confirm with cost estimate |
+| Video `kling-25` (5 s, 720p) | ✅ go | ⚠️ confirm | ⚠️ confirm |
+| Video `bytedance-seedance-fast-2.0` | ✅ go | ⚠️ confirm | ⚠️ confirm |
+| Video `bytedance-seedance-pro-2.0` (especially ≥10 s, 1080p, multishot) | ⚠️ confirm | ❌ confirm with `video_plan` cost | ❌ confirm with `video_plan` cost |
+| Flow ≥ 1,000 credits (e.g. `Photo to motion`, `UGC livestream`, `Camera path`) | ⚠️ confirm | ❌ confirm | ❌ confirm |
 | 3D model generation | ⚠️ confirm | ⚠️ confirm | ❌ confirm |
 | Upscale 4K+ | ✅ go | ⚠️ confirm | ⚠️ confirm |
 
@@ -237,7 +301,7 @@ the rough cost out loud before launching.
 
 ---
 
-## 7. Budget tracking + post-job reporting
+## 8. Budget tracking + post-job reporting
 
 **Always report credit usage after every job that consumes credits.** This is
 non-negotiable regardless of `tracking` mode — the user wants to see what
@@ -294,7 +358,7 @@ When `tracking: auto`, maintain a `budget.json` in the user's project root
 
 ---
 
-## 8. Identifier hygiene (per Magnific's own MCP instructions)
+## 9. Identifier hygiene
 
 When writing back to the user:
 - **Use** names, titles, `webUrl`, and plain descriptions.
@@ -304,7 +368,7 @@ When writing back to the user:
 
 ---
 
-## 9. Common gotchas
+## 10. Common gotchas
 
 - **`creations_search` is data-only.** It returns results but no `webUrl`.
   If you want the user to see them, call `creations_show(identifiers)`.
@@ -320,23 +384,31 @@ When writing back to the user:
 
 ---
 
-## 10. Quick "give me good defaults" recipe
+## 11. Quick "give me good defaults" recipe
 
 If the user just says *"make me an image of X"* with no other hints:
 
-1. Model: `imagen-nano-banana-2` (cheap, fast, good).
-2. Aspect ratio: `1:1` unless context implies wide/tall.
-3. No references unless they referenced a prior character.
+1. **Check `flows_list` first** with the user's keywords — common tasks
+   (icon, mockup, room decor, merch) have cheaper pre-built flows.
+2. If no flow fits, pick model by the decision tree in §2:
+   - Pure text→image, no refs → `recraft-v4-1` (fast, clean)
+   - Text inside the image / Hebrew / Arabic → `gpt-2`
+   - Editing or matching something → `imagen-nano-banana-2` (Pro)
+3. Aspect ratio: `1:1` unless context implies wide/tall.
 4. After result lands, `creations_show` it inline.
-5. Offer one upgrade path: *"want a higher-fidelity pass with
-   `imagen-4-ultra`?"*
+5. Offer one upgrade path: *"want a higher-fidelity pass with Nano Banana
+   Pro?"* — only suggest upgrades that improve something the user cares
+   about (don't upsell for the sake of it).
 
-For video, the equivalent default is `kling-2-5`, 5 seconds, the
-first generated image as keyframe.
+For video, default to `kling-25` (5 s, the generated image as start
+keyframe). Switch to `bytedance-seedance-pro-2.0` when the brief mentions
+audio, lipsync, multishot, or directed camera motion.
+
+For audio TTS, `audio_voices_list` first so the user can pick a voice.
 
 ---
 
-## 11. Updating this skill
+## 12. Updating this skill
 
 This is a living guide. If a user shares a workflow they like, or you find a
 better default through trial, propose adding it to this file — but keep the
