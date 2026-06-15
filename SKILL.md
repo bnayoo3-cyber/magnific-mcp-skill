@@ -381,6 +381,14 @@ When writing back to the user:
 - **Aspect-ratio in references** — Magnific keeps the requested output AR
   even when references differ; don't pre-crop unless you specifically want
   to constrain composition.
+- **Generating images that will be processed programmatically** (chroma-key,
+  slicing, masking, OCR pre-processing) — image models often add decorative
+  borders, grid lines, frames, watermark-style labels, even when not asked.
+  In the prompt, **explicitly forbid them**: *"no grid lines, no borders,
+  no frames, no separators, no labels, no text, no watermark, no decorative
+  elements — just <subject> on a solid <BG_COLOR> background filling
+  edge-to-edge"*. Spending 75 credits on a clean regeneration beats 30 min
+  of post-processing to remove them.
 
 ---
 
