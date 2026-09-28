@@ -1,8 +1,10 @@
 # magnific-mcp skill for Claude Code
 
 A best-practices guide that teaches Claude how to use the **Magnific MCP**
-server effectively — covering model selection, credit budgeting, character
-consistency via the Library, image→video chaining, and approval rules for
+server effectively — covering model selection with live credit costs,
+credit budgeting, character consistency via the Library, image→video
+chaining, the video/image post-production toolbox (modify, extend, magic cut,
+relight, colour grade, lip sync, dubbing), 3D, audio, and approval rules for
 expensive operations.
 
 This is a **Skill**, not an MCP. It sits on top of the existing Magnific MCP
@@ -48,7 +50,7 @@ shape every subsequent decision.
 
 | File | Purpose |
 |------|---------|
-| `SKILL.md` | The guide itself — 10 sections of accumulated best practice. |
+| `SKILL.md` | The guide itself — 16 sections of accumulated best practice. Catalog snapshot: Sept 2026. |
 | `user_config.example.json` | Template for your preferences. |
 | `budget.example.json` | Template for credit tracking. |
 
