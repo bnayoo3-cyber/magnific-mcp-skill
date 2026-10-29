@@ -137,10 +137,18 @@ to metered on some plans. Trust the live `isUnlimited` flag.
 > the lowest `rank`. Entries flagged `private: true` are feature-flagged and
 > not generally available — don't pick them.
 
-### Recommended set (Sept 2026) — costs from `simulate_cost`
+### Recommended set (Oct 2026) — costs from `simulate_cost`
+
+> **Oct 2026 change:** the live `onlyRecommended` list now returns only
+> **Nano Banana 2.1** (`sota`, rank 1 — the new default) and **Magnific One**
+> (rank 2, still `private: true` / rolling out). Seedream 5 Pro, Recraft and
+> GPT 2.5 dropped off the recommended list but still work and keep their
+> niches below (GPT 2.5 is still the pick for Hebrew/RTL text).
 
 | Slug | Display name | Best for | Credits (1 image) | Notes |
 |------|-------------|----------|-------------------|-------|
+| `imagen-nano-banana-2-1` | **Nano Banana 2.1** | **New default (Oct 2026).** Text→image, edits, references (style/character/product/image), text & layout, infographics, UI, general purpose | ~100 (2k) | 1k/2k/4k; ratios up to 8:1 / 1:8 |
+| `magnific-one` | **Magnific One** | Magnific's own aesthetic model; **the only model Brand Kits work with**. Write only subject + moment, it directs light/lens/style itself — don't add them | ~100 (2k `medium`) | `medium` = High, `high` = Max (far pricier, only on request); `draft` mode = 4/8/16 cheap variations, only when asked. `private` for now |
 | `seedream-5-pro` | Seedream 5 Pro | **Magnific's new default.** Text→image, reference-guided edits, product, character, photoreal, general purpose | ~100 | 1.5k / 2k only; all 4 ref types |
 | `recraft-v4-1` | Recraft V4.1 | **Pure text→image, first drafts**, illustration, typography, fast exploration (~14 s) | ~60 (`tier: mid`) / ~175 (`tier: pro`) | `style` refs only; `variant: standard \| utility` |
 | `gpt-2-mini` | **GPT 2.5** ⚠️ | Text, infographics, UI, diagrams, layout. **Best Hebrew / Arabic / RTL.** Faster than GPT 2 (~31 s) | **~15 (low, 1k)** · ~100 (medium) · ~1,000 (max, 4k) | Qualities `low→max`; `variant: flare \| sunburst`; transparent BG |
@@ -161,6 +169,7 @@ Draft at low/1k, then re-run the winner at high quality.
 
 ### Decision tree (in this order)
 
+0. **On-brand work with a Brand Kit** → `magnific-one` with `brandKitId` (forced by the server). **Default otherwise** → `imagen-nano-banana-2-1`.
 1. **Output must contain rendered text** (any language, especially Hebrew /
    Arabic / RTL / Asian scripts) → `gpt-2-mini` (GPT 2.5). Draft at
    `quality: low`, finalize at `high`.
@@ -262,12 +271,20 @@ brief, open questions, the recommended slug and a prompt draft, and splits
 anything longer than the model's max into clips + `video_concatenate`
 instructions. Then `simulate_cost` before `video_generate`.
 
-### Recommended set (Sept 2026) — costs for a 5 s, 16:9 clip
+### Recommended set (Oct 2026) — costs for a 5 s, 16:9 clip
+
+> **Oct 2026:** Seedance 2.5 and the new `cinematic-video` (private, same
+> engine) accept a **`looks`** block: camera body (IMAX 70mm, ARRI Alexa 35,
+> 35mm/8mm film, VHS…), lens (spherical/anamorphic), aperture, lighting
+> (golden hour, Rembrandt, neon…), film stock, 15 "movie looks" and halation.
+> Seedance 2.5 audio refs no longer need a visual reference. Kling 3.0 Omni
+> fell off the recommended list (still valid).
 
 | Slug | Name | Best for | Durations | Resolutions | Audio | ~Credits (5 s) |
 |------|------|---------|-----------|-------------|-------|---------------|
 | `bytedance-seedance-pro-2.5` | **Seedance 2.5** | **Best overall.** Realism, complex motion, native audio + lipsync, directed camera (52 moves), multishot (6), up to 30 image / 10 video / 10 audio refs | **4–30 s** | Draft / 480p / 720p / 1080p | ✅ | Draft ~1,000 · 720p ~2,200 · 1080p ~3,950 |
 | `bytedance-seedance-pro-2.0` | Seedance 2.0 | 4K output with Seedance controls | 4–15 s | 480p → **4K** | ✅ | 1080p ~3,500 |
+| `bytedance-seedance-mini-2.0` | **Seedance 2.0 Mini** (new, Oct 2026) | **Best quality/price with native audio** — now `recommended` rank 2. Full Seedance refs (9 img / 3 video / 3 audio), multishot, 52 camera moves | 4–15 s | 480p / 720p | ✅ | 720p ~700 |
 | `bytedance-seedance-fast-2.0` | Seedance 2.0 Fast | Seedance controls/audio at draft quality | 4–15 s | 480p / 720p | ✅ | 720p ~1,175 |
 | `kling-omni3` | Kling 3.0 Omni | **Good-value clip with sound**, up to 15 s, 4K option | 3–15 s | 720p / 1080p / 4K | ✅ | 1080p ~475 |
 | `kling-25` | Kling 2.5 | **Cheapest quality silent clip**, start/end frames | 5 / 10 s | 720p / 1080p | ❌ | 1080p ~325 |
@@ -446,6 +463,79 @@ same turn. ❌ = state the `simulate_cost` number and wait for a yes.
 
 **Rule of thumb**: if a single call could cost > 500 credits, say the
 number out loud before launching.
+
+---
+
+## 8b. New surfaces (Oct 2026) — read the server's own guide first
+
+Magnific now ships **domain guides** inside the MCP: `guides_list` →
+`guides_get({ name })`. Current guides: `brand-kit`, `scene3d`, `spaces`,
+`spaces-story` (characters/locations/sequences, storyboards, manga),
+`spaces-brand-kit`. Read the matching guide before touching that surface —
+it is more current than this file.
+
+### Brand Kits (`brand_kit_*`)
+- One brand's colors, fonts, logos, voice, reference images, content
+  templates and bans. Generate with `images_generate({ brandKitId })` and a
+  **short** prompt (topic + hard constraints) — the kit owns the look.
+  Optional `templateSlug`, `logoVariant`, `channel` (`instagram_story`, `print`…).
+- **Works only with Magnific One** — the server switches to it; never offer
+  another model for a branded image.
+- Build: `brand_kit_create` → `brand_kit_scrape_url` (a website) and/or
+  `brand_kit_add_document` (images uploaded as creations) → poll
+  `brand_kit_process_status` → `brand_kit_get` → report what was found and
+  what's missing (never invent colors/fonts) → `brand_kit_update status:"ready"`.
+  PDFs can't be uploaded from outside the app yet. Daily build limit.
+- Fix off-brand output with `brand_kit_add_rule` (a real ban), after
+  confirming with the user. Templates: `brand_kit_create_template` from a
+  brief, preset or example images.
+- `atoms.motion` = the brand's motion profile (GSAP eases, logo/text
+  animation, transitions, end card) used by Move and video work.
+
+### Magnific Move (`video_move_*`) — AI motion-graphics agent
+- `video_move_create({ prompt, format, duration, brandKitId, references })`:
+  an agent designs and animates **in code** — kinetic type, logo reveals,
+  explainers, infographics, lower thirds, social ads. Not for AI footage
+  (that's `video_generate`). Up to 180 s; 16:9 / 9:16 / 1:1 / 4:5 / 4:3 / 21:9.
+- Runs a few minutes unattended → `video_move_get` → edit with
+  `video_move_edit` → export MP4 with `video_move_render`.
+- `allowGeneration: false` (default) = only references, code, free fonts
+  and SFX — cheap. `true` lets it buy images/video/3D/voice-over/music;
+  needed for narration or music → treat as a paid call and confirm.
+- Not covered by `simulate_cost`; check `account_balance` before/after.
+
+### 3D Scenes (`scene3d_*`)
+- A virtual 3D set: objects, SOMA human actors with AI-generated
+  performance (`scene3d_generate_actor_motion`, multi-actor
+  `scene3d_apply_actor_choreography`), cameras, takes, cuts, keyframes; look
+  of a person via `scene3d_set_actor_appearance` (human / mannequin / a
+  Library character with a 3D model). Call it "3D Scene" to the user.
+- `scene3d_create` once → share `webUrl`. Visual checks (`scene3d_capture`)
+  need the scene open in a visible browser tab. Read the `scene3d` guide —
+  it has hard rules (1 u = 2.1875 m, one built-in floor, axis rules for cuts,
+  no blind retries of actor generation).
+- Use for: blocking/previz, camera planning, consistent staging → capture
+  stills → feed as keyframes/references into `video_generate`.
+
+### Local MCP — drive desktop apps (`plugin_*`)
+- With the **Magnific Local MCP** running (uplink on, app open),
+  `plugin_status` → `plugin_catalog({ host })` → `plugin_call` drive
+  Blender, After Effects, Photoshop, Premiere, Illustrator, InDesign and
+  DaVinci Resolve. If `connected: false`, tell the user to start it.
+
+### Delivery & pro formats
+- `creations_deliver({ creationIdentifier, profile })` — **free**: ProRes
+  422 HQ / 4444 (alpha), DNxHR, HEVC, H.264, PNG sequence; PNG16 / TIFF16 /
+  layered PSD (from `design_auto_layers`); WAV 48k / MP3. Optional
+  `maxHeight` 720/1080. Video/audio carry provenance metadata. Use this
+  instead of re-encoding locally when the user needs an editor-ready file.
+- `design_auto_layers` splits a flat image into up to 10 editable layers
+  (optionally vectorized) → PSD via `creations_deliver psd_layers`.
+- Also new: `creations_lineage` (what a creation was made from),
+  `creations_read`/`creations_search`, comments & mentions on creations,
+  `projects_download_zip`, `projects_metadata_export`, `naming_conventions`,
+  `notifications`, `audio_voice_clone`, `audio_timing_get`,
+  `video_audio_mix`, `video_depth_map`, `video_view_frames`.
 
 ---
 
